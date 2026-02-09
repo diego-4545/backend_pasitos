@@ -10,6 +10,10 @@ Base.metadata.create_all(bind=engine)
 def health():
     return {"status": "ok"}
 
+@app.head("/prueba")
+def prueba():
+    return {"status": "ok"}
+
 from app.routers import ninos, padres, maestros, fechas, pagos, agenda
 
 app.include_router(ninos.router)
