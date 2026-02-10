@@ -7,4 +7,7 @@ class Maestro(Base):
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String, nullable=False)
     telefono = Column(String, nullable=False)
-    password_hash = Column(String, nullable=False)
+    username = Column(String, unique=True, nullable=False)
+    password = Column(String, nullable=False)
+    sucursal = Column(Integer, nullable=False)
+

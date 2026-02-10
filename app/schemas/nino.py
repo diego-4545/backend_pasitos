@@ -2,10 +2,10 @@ from pydantic import BaseModel
 
 class NinoCreate(BaseModel):
     nombre: str
-    edad: int
+    sucursal: int
     padre_id: int
 
 class NinoUpdate(BaseModel):
     nombre: str | None = None
-    edad: int | None = None
+    sucursal: int | None = None
     padre_id: int | None = None

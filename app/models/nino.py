@@ -7,6 +7,7 @@ class Nino(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String, nullable=False)
+    sucursal = Column(Integer, nullable=False)
 
     padre_id = Column(Integer, ForeignKey("padres.id"), nullable=False)
 
