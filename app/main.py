@@ -6,6 +6,10 @@ app = FastAPI()
 
 Base.metadata.create_all(bind=engine)
 
+@app.api_route("/", methods=["GET", "HEAD"])
+def root():
+    return {"mensaje": "API activa"}
+
 @app.api_route("/health", methods=["GET", "HEAD"])
 def health():
     return {"status": "ok"}
