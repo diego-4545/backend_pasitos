@@ -1,5 +1,4 @@
 from fastapi import Header, HTTPException
-
 from app.config import API_KEY
 
 def verificar_api_key(x_api_key: str = Header(None)):
@@ -8,4 +7,3 @@ def verificar_api_key(x_api_key: str = Header(None)):
             status_code=401,
             detail="API Key inválida"
         )
-
