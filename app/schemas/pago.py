@@ -2,9 +2,11 @@ from pydantic import BaseModel
 
 class PagoCreate(BaseModel):
     fecha_id: int
-    monto: float
+    deuda: float
+    pago: float
     estado: bool
 
 class PagoUpdate(BaseModel):
-    monto: float | None = None
+    deuda: float | None = None
+    pago: float | None = None
     estado: bool | None = None
