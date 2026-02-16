@@ -45,3 +45,11 @@ def eliminar_padre(padre_id: int, db: Session = Depends(get_db)):
     db.delete(registro)
     db.commit()
     return {"mensaje": "Padre eliminado"}
+
+
+from app.models.nino import Nino
+
+@router.get("/{padre_id}/ninos")
+def obtener_ninos_de_padre(padre_id: int, db: Session = Depends(get_db)):
+    ninos = db.query(Nino).filter(Nino.padre_id == padre_id).all()
+    return ninos
