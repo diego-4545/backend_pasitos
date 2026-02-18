@@ -15,7 +15,7 @@ router = APIRouter(
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
-from .models import Maestro, MaestroCreate
+from app.models import Maestro, MaestroCreate
 from .database import get_db
 
 router = APIRouter()
