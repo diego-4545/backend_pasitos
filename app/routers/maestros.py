@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -12,14 +13,7 @@ router = APIRouter(
     dependencies=[Depends(verificar_api_key)]
 )
 
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from fastapi.responses import JSONResponse
-from app.models import Maestro, MaestroCreate
-from .database import get_db
-
-router = APIRouter()
-
+# Crear maestro
 @router.post("/")
 def crear_maestro(maestro: MaestroCreate, db: Session = Depends(get_db)):
     # Verificar si el usuario ya existe
@@ -29,27 +23,29 @@ def crear_maestro(maestro: MaestroCreate, db: Session = Depends(get_db)):
             status_code=200,
             content={"status": "error", "mensaje": "Usuario ya existe"}
         )
-    
+
     # Crear nuevo maestro
     nuevo = Maestro(**maestro.model_dump())
     db.add(nuevo)
     db.commit()
     db.refresh(nuevo)
-    
+
     return JSONResponse(
         status_code=200,
         content={"status": "ok", "mensaje": "Maestro creado"}
     )
 
+# Listar maestros
 @router.get("/")
 def listar_maestros(db: Session = Depends(get_db)):
     return db.query(Maestro).all()
 
+# Actualizar maestro
 @router.put("/{maestro_id}")
 def actualizar_maestro(maestro_id: int, maestro: MaestroUpdate, db: Session = Depends(get_db)):
     registro = db.query(Maestro).filter(Maestro.id == maestro_id).first()
     if not registro:
-        raise HTTPException(404, "Maestro no encontrado")
+        raise HTTPException(status_code=404, detail="Maestro no encontrado")
 
     for k, v in maestro.model_dump(exclude_unset=True).items():
         setattr(registro, k, v)
@@ -57,11 +53,12 @@ def actualizar_maestro(maestro_id: int, maestro: MaestroUpdate, db: Session = De
     db.commit()
     return registro
 
+# Eliminar maestro
 @router.delete("/{maestro_id}")
 def eliminar_maestro(maestro_id: int, db: Session = Depends(get_db)):
     registro = db.query(Maestro).filter(Maestro.id == maestro_id).first()
     if not registro:
-        raise HTTPException(404, "Maestro no encontrado")
+        raise HTTPException(status_code=404, detail="Maestro no encontrado")
 
     db.delete(registro)
     db.commit()
