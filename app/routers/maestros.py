@@ -12,13 +12,34 @@ router = APIRouter(
     dependencies=[Depends(verificar_api_key)]
 )
 
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from fastapi.responses import JSONResponse
+from .models import Maestro, MaestroCreate
+from .database import get_db
+
+router = APIRouter()
+
 @router.post("/")
 def crear_maestro(maestro: MaestroCreate, db: Session = Depends(get_db)):
+    # Verificar si el usuario ya existe
+    usuario_existente = db.query(Maestro).filter(Maestro.username == maestro.username).first()
+    if usuario_existente:
+        return JSONResponse(
+            status_code=200,
+            content={"status": "error", "mensaje": "Usuario ya existe"}
+        )
+    
+    # Crear nuevo maestro
     nuevo = Maestro(**maestro.model_dump())
     db.add(nuevo)
     db.commit()
     db.refresh(nuevo)
-    return nuevo
+    
+    return JSONResponse(
+        status_code=200,
+        content={"status": "ok", "mensaje": "Maestro creado"}
+    )
 
 @router.get("/")
 def listar_maestros(db: Session = Depends(get_db)):
