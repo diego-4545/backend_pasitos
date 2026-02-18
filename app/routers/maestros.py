@@ -43,15 +43,37 @@ def listar_maestros(db: Session = Depends(get_db)):
 # Actualizar maestro
 @router.put("/{maestro_id}")
 def actualizar_maestro(maestro_id: int, maestro: MaestroUpdate, db: Session = Depends(get_db)):
+    
     registro = db.query(Maestro).filter(Maestro.id == maestro_id).first()
+    
     if not registro:
-        raise HTTPException(status_code=404, detail="Maestro no encontrado")
+        return JSONResponse(
+            status_code=404,
+            content={"status": "error", "mensaje": "Maestro no encontrado"}
+        )
 
+    # verificar si username ya existe en otro maestro
+    usuario_existente = db.query(Maestro).filter(
+        Maestro.username == maestro.username,
+        Maestro.id != maestro_id
+    ).first()
+
+    if usuario_existente:
+        return JSONResponse(
+            status_code=200,
+            content={"status": "error", "mensaje": "Usuario ya existe"}
+        )
+
+    # actualizar datos
     for k, v in maestro.model_dump(exclude_unset=True).items():
         setattr(registro, k, v)
 
     db.commit()
-    return registro
+
+    return JSONResponse(
+        status_code=200,
+        content={"status": "ok", "mensaje": "Maestro editado correctamente"}
+    )
 
 # Eliminar maestro
 @router.delete("/{maestro_id}")
