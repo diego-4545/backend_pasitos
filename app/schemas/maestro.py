@@ -13,3 +13,14 @@ class MaestroUpdate(BaseModel):
     username: str | None = None
     password: str | None = None
     sucursal: int | None = None
+
+class MaestroOut(BaseModel):
+    id: int
+    nombre: str
+    telefono: str
+    username: str
+    password: str
+    sucursal: int
+
+    class Config:
+        from_attributes = True
