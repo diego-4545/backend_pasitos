@@ -36,27 +36,25 @@ def listar_fechas(db: Session = Depends(get_db)):
 def obtener_ninos_disponibles(sucursal_id: int, db: Session = Depends(get_db)):
     """
     Devuelve los Nino de la sucursal que NO tienen una fecha activa ahora.
-    Activa = hora_inicio <= ahora <= hora_fin
+    Activa = hora_entrada <= ahora <= hora_salida
     """
-    ahora = datetime.now(timezone.utc)  # o datetime.now() si no usas tz; ajusta según tu base
     
-    # Subconsulta: existe alguna fecha activa para ese niño?
+    ahora = datetime.now().time()
+
     subquery = db.query(Fecha).filter(
         and_(
             Fecha.nino_id == Nino.id,
-            Fecha.hora_inicio <= ahora,
-            Fecha.hora_fin >= ahora
+            Fecha.hora_entrada <= ahora,
+            Fecha.hora_salida >= ahora
         )
     )
-    
-    # Seleccionamos los niños de la sucursal donde NO exista fecha activa
+
     ninos = db.query(Nino).filter(
         Nino.sucursal == sucursal_id,
         not_(exists(subquery))
     ).all()
 
     return ninos
-
 
 # --- PUT para actualizar una fecha por id ---
 @router.put("/{fecha_id}")
