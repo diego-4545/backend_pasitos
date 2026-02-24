@@ -36,22 +36,22 @@ def listar_fechas(db: Session = Depends(get_db)):
 def obtener_ninos_disponibles(sucursal_id: int, db: Session = Depends(get_db)):
     """
     Devuelve los Nino de la sucursal que NO tienen una fecha activa ahora.
-    Activa = hora_entrada <= ahora <= hora_salida
+    Activa = hora_inicio <= ahora <= hora_fin
     """
-    
+
     ahora = datetime.now().time()
 
-    subquery = db.query(Fecha).filter(
+    subquery = exists().where(
         and_(
             Fecha.nino_id == Nino.id,
-            Fecha.hora_entrada <= ahora,
-            Fecha.hora_salida >= ahora
+            Fecha.hora_inicio <= ahora,
+            Fecha.hora_fin >= ahora
         )
     )
 
     ninos = db.query(Nino).filter(
         Nino.sucursal == sucursal_id,
-        not_(exists(subquery))
+        not_(subquery)
     ).all()
 
     return ninos
