@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.security import verificar_api_key
 from app.models.maestro import Maestro
-from app.schemas.maestro import MaestroCreate, MaestroUpdate
+from app.schemas.maestro import MaestroCreate, MaestroUpdate, MaestroOut
 
 router = APIRouter(
     prefix="/maestros",
@@ -36,7 +36,7 @@ def crear_maestro(maestro: MaestroCreate, db: Session = Depends(get_db)):
     )
 
 # Listar maestros
-@router.get("/")
+@router.get("/", response_model=list[MaestroOut])
 def listar_maestros(db: Session = Depends(get_db)):
     return db.query(Maestro).all()
 
