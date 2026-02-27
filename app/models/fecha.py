@@ -9,9 +9,9 @@ class Fecha(Base):
     fecha = Column(Date, nullable=False)
 
     hora_inicio = Column(Time, nullable=False)
-    hora_fin = Column(Time, nullable=False)
+    hora_fin = Column(Time, nullable=True)
 
-    tiempo_estancia = Column(Integer, nullable=False)
+    tiempo_estancia = Column(Integer, nullable=True)
 
     nino_id = Column(Integer, ForeignKey("ninos.id"), nullable=False)
 
