@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import exists, and_, not_
 from datetime import datetime, timezone
 from typing import Optional
-
+from sqlalchemy import and_, or_, not_, exists
 from app.database import get_db
 from app.security import verificar_api_key
 from app.models.fecha import Fecha
@@ -34,10 +34,6 @@ def listar_fechas(db: Session = Depends(get_db)):
 # --- Endpoint para obtener niños SIN fechas activas en una sucursal ---
 @router.get("/disponibles/{sucursal_id}")
 def obtener_ninos_disponibles(sucursal_id: int, db: Session = Depends(get_db)):
-    """
-    Devuelve los Nino de la sucursal que NO tienen una fecha activa ahora.
-    Activa = hora_inicio <= ahora <= hora_fin
-    """
 
     ahora = datetime.now().time()
 
@@ -45,7 +41,10 @@ def obtener_ninos_disponibles(sucursal_id: int, db: Session = Depends(get_db)):
         and_(
             Fecha.nino_id == Nino.id,
             Fecha.hora_inicio <= ahora,
-            Fecha.hora_fin >= ahora
+            or_(
+                Fecha.hora_fin == None,
+                Fecha.hora_fin >= ahora
+            )
         )
     )
 
@@ -55,6 +54,7 @@ def obtener_ninos_disponibles(sucursal_id: int, db: Session = Depends(get_db)):
     ).all()
 
     return ninos
+
 
 # --- PUT para actualizar una fecha por id ---
 @router.put("/{fecha_id}")
