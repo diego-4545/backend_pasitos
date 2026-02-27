@@ -9,6 +9,7 @@ from app.security import verificar_api_key
 from app.models.fecha import Fecha
 from app.models.nino import Nino
 from app.schemas.fecha import FechaCreate, FechaUpdate 
+from sqlalchemy import and_, exists, not_
 
 router = APIRouter(
     prefix="/fechas",
@@ -32,29 +33,25 @@ def listar_fechas(db: Session = Depends(get_db)):
 
 
 # --- Endpoint para obtener niños SIN fechas activas en una sucursal ---
+from sqlalchemy import and_, exists, not_
+
 @router.get("/disponibles/{sucursal_id}")
 def obtener_ninos_disponibles(sucursal_id: int, db: Session = Depends(get_db)):
-
-    ahora = datetime.now().time()
 
     subquery = exists().where(
         and_(
             Fecha.nino_id == Nino.id,
-            Fecha.hora_inicio <= ahora,
-            or_(
-                Fecha.hora_fin == None,
-                Fecha.hora_fin >= ahora
-            )
+            Fecha.hora_inicio != None,
+            Fecha.hora_fin == None   # sigue dentro
         )
     )
 
     ninos = db.query(Nino).filter(
         Nino.sucursal == sucursal_id,
-        not_(subquery)
+        not_(subquery)  # que NO tenga una fecha abierta
     ).all()
 
     return ninos
-
 
 # --- PUT para actualizar una fecha por id ---
 @router.put("/{fecha_id}")
