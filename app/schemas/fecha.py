@@ -5,10 +5,9 @@ from typing import Optional
 class FechaCreate(BaseModel):
     fecha: date
     nino_id: int
-    tiempo_estancia: int
     hora_inicio: time
-    hora_fin: time
-
+    hora_fin: Optional[time] = None
+    tiempo_estancia: Optional[int] = None
 
 class FechaUpdate(BaseModel):
     fecha: Optional[date] = None
