@@ -33,8 +33,6 @@ def listar_fechas(db: Session = Depends(get_db)):
 
 
 # --- Endpoint para obtener niños SIN fechas activas en una sucursal ---
-from sqlalchemy import and_, exists, not_
-
 @router.get("/disponibles/{sucursal_id}")
 def obtener_ninos_disponibles(sucursal_id: int, db: Session = Depends(get_db)):
 
@@ -73,3 +71,24 @@ def actualizar_fecha(fecha_id: int, fecha_update: "FechaUpdate", db: Session = D
     db.commit()
     db.refresh(db_fecha)
     return db_fecha
+
+
+@router.get("/fechas/abiertas/{sucursal_id}")
+def obtener_fechas_abiertas(sucursal_id: int, db: Session = Depends(get_db)):
+    """
+    Devuelve todas las fechas sin hora_fin
+    de los niños de una sucursal específica
+    """
+
+    fechas = (
+        db.query(Fecha)
+        .join(Nino, Fecha.nino_id == Nino.id)
+        .filter(
+            Nino.sucursal == sucursal_id,
+            Fecha.hora_inicio != None,
+            Fecha.hora_fin == None
+        )
+        .all()
+    )
+
+    return fechas
