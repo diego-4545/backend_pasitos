@@ -73,22 +73,32 @@ def actualizar_fecha(fecha_id: int, fecha_update: "FechaUpdate", db: Session = D
     return db_fecha
 
 
-@router.get("/fechas/abiertas/{sucursal_id}")
+@router.get("/abiertas/{sucursal_id}")
 def obtener_fechas_abiertas(sucursal_id: int, db: Session = Depends(get_db)):
-    """
-    Devuelve todas las fechas sin hora_fin
-    de los niños de una sucursal específica
-    """
 
-    fechas = (
-        db.query(Fecha)
+    resultados = (
+        db.query(
+            Fecha.id.label("fecha_id"),
+            Fecha.nino_id,
+            Nino.nombre,
+            Fecha.fecha,
+            Fecha.hora_inicio
+        )
         .join(Nino, Fecha.nino_id == Nino.id)
         .filter(
             Nino.sucursal == sucursal_id,
-            Fecha.hora_inicio != None,
             Fecha.hora_fin == None
         )
         .all()
     )
 
-    return fechas
+    return [
+        {
+            "fecha_id": r.fecha_id,
+            "nino_id": r.nino_id,
+            "nombre": r.nombre,
+            "fecha": r.fecha,
+            "hora_inicio": r.hora_inicio
+        }
+        for r in resultados
+    ]
