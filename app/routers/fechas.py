@@ -32,7 +32,6 @@ def listar_fechas(db: Session = Depends(get_db)):
     return db.query(Fecha).all()
 
 
-# --- Endpoint para obtener niños SIN fechas activas en una sucursal ---
 @router.get("/disponibles/{sucursal_id}")
 def obtener_ninos_disponibles(sucursal_id: int, db: Session = Depends(get_db)):
 
@@ -40,18 +39,17 @@ def obtener_ninos_disponibles(sucursal_id: int, db: Session = Depends(get_db)):
         and_(
             Fecha.nino_id == Nino.id,
             Fecha.hora_inicio != None,
-            Fecha.hora_fin == None   # sigue dentro
+            Fecha.hora_fin == None  
         )
     )
 
     ninos = db.query(Nino).filter(
         Nino.sucursal == sucursal_id,
-        not_(subquery)  # que NO tenga una fecha abierta
+        not_(subquery) 
     ).all()
 
     return ninos
 
-# --- PUT para actualizar una fecha por id ---
 @router.put("/{fecha_id}")
 def actualizar_fecha(fecha_id: int, fecha_update: "FechaUpdate", db: Session = Depends(get_db)):
     """
@@ -62,7 +60,6 @@ def actualizar_fecha(fecha_id: int, fecha_update: "FechaUpdate", db: Session = D
     if not db_fecha:
         raise HTTPException(status_code=404, detail="Fecha no encontrada")
 
-    # Usando Pydantic v2: model_dump(exclude_unset=True)
     cambios = fecha_update.model_dump(exclude_unset=True)
     for key, val in cambios.items():
         setattr(db_fecha, key, val)

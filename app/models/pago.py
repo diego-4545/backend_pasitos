@@ -6,10 +6,14 @@ class Pago(Base):
     __tablename__ = "pagos"
 
     id = Column(Integer, primary_key=True, index=True)
-    deuda = Column(Float, nullable=False)
-    pago = Column(Float, nullable=False)
-    estado = Column(Integer, nullable=False)  # 0 = no pagado, 1 = pagado
 
-    fecha_id = Column(Integer, ForeignKey("fechas.id"), nullable=False)
+    deuda = Column(Float, nullable=False)  
+    pago = Column(Float, nullable=False)    
+    estado = Column(Integer, nullable=False) 
 
-    fecha = relationship("Fecha")
+    mes = Column(Integer, nullable=False)
+    anio = Column(Integer, nullable=False)
+
+    nino_id = Column(Integer, ForeignKey("ninos.id"), nullable=False)
+
+    nino = relationship("Nino")

@@ -1,12 +1,28 @@
 from pydantic import BaseModel
+from typing import Optional
 
-class PagoCreate(BaseModel):
-    fecha_id: int
+
+class PagoBase(BaseModel):
+    nino_id: int
+    mes: int
+    anio: int
     deuda: float
-    pago: float
-    estado: bool
+    pago: float = 0
+    estado: int = 0  
+
+
+class PagoCreate(PagoBase):
+    pass
+
 
 class PagoUpdate(BaseModel):
-    deuda: float | None = None
-    pago: float | None = None
-    estado: bool | None = None
+    deuda: Optional[float] = None
+    pago: Optional[float] = None
+    estado: Optional[int] = None
+
+
+class PagoResponse(PagoBase):
+    id: int
+
+    class Config:
+        from_attributes = True

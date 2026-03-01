@@ -13,10 +13,8 @@ router = APIRouter(
     dependencies=[Depends(verificar_api_key)]
 )
 
-# Crear maestro
 @router.post("/")
 def crear_maestro(maestro: MaestroCreate, db: Session = Depends(get_db)):
-    # Verificar si el usuario ya existe
     usuario_existente = db.query(Maestro).filter(Maestro.username == maestro.username).first()
     if usuario_existente:
         return JSONResponse(
@@ -24,7 +22,6 @@ def crear_maestro(maestro: MaestroCreate, db: Session = Depends(get_db)):
             content={"status": "error", "mensaje": "Usuario ya existe"}
         )
 
-    # Crear nuevo maestro
     nuevo = Maestro(**maestro.model_dump())
     db.add(nuevo)
     db.commit()
@@ -35,12 +32,10 @@ def crear_maestro(maestro: MaestroCreate, db: Session = Depends(get_db)):
         content={"status": "ok", "mensaje": "Maestro creado"}
     )
 
-# Listar maestros
 @router.get("/", response_model=list[MaestroOut])
 def listar_maestros(db: Session = Depends(get_db)):
     return db.query(Maestro).all()
 
-# Actualizar maestro
 @router.put("/{maestro_id}")
 def actualizar_maestro(maestro_id: int, maestro: MaestroUpdate, db: Session = Depends(get_db)):
     
@@ -52,7 +47,6 @@ def actualizar_maestro(maestro_id: int, maestro: MaestroUpdate, db: Session = De
             content={"status": "error", "mensaje": "Maestro no encontrado"}
         )
 
-    # verificar si username ya existe en otro maestro
     usuario_existente = db.query(Maestro).filter(
         Maestro.username == maestro.username,
         Maestro.id != maestro_id
@@ -64,7 +58,6 @@ def actualizar_maestro(maestro_id: int, maestro: MaestroUpdate, db: Session = De
             content={"status": "error", "mensaje": "Usuario ya existe"}
         )
 
-    # actualizar datos
     for k, v in maestro.model_dump(exclude_unset=True).items():
         setattr(registro, k, v)
 
@@ -75,7 +68,6 @@ def actualizar_maestro(maestro_id: int, maestro: MaestroUpdate, db: Session = De
         content={"status": "ok", "mensaje": "Maestro editado correctamente"}
     )
 
-# Eliminar maestro
 @router.delete("/{maestro_id}")
 def eliminar_maestro(maestro_id: int, db: Session = Depends(get_db)):
     registro = db.query(Maestro).filter(Maestro.id == maestro_id).first()
