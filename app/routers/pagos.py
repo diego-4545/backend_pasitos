@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import datetime
-
 from app.database import get_db
 from app.security import verificar_api_key
 from app.models.pago import Pago
@@ -12,6 +11,18 @@ router = APIRouter(
     tags=["Pagos"],
     dependencies=[Depends(verificar_api_key)]
 )
+
+VALORES_PAQUETE = {
+    1: 3150,
+    2: 3350,
+    3: 3550,
+    4: 3750,
+    5: 3950,
+    6: 4200,
+    7: 4750,
+    8: 5000,
+    9: 5300
+}
 
 
 @router.post("/", response_model=PagoResponse)
@@ -60,9 +71,9 @@ def actualizar_pago(pago_id: int, pago: PagoUpdate, db: Session = Depends(get_db
         setattr(registro, k, v)
 
     if registro.pago >= registro.deuda:
-        registro.estado = 1  
+        registro.estado = 1 
     elif registro.pago > 0:
-        registro.estado = 2  
+        registro.estado = 2
     else:
         registro.estado = 0  
 
@@ -70,3 +81,44 @@ def actualizar_pago(pago_id: int, pago: PagoUpdate, db: Session = Depends(get_db
     db.refresh(registro)
 
     return registro
+
+
+@router.post("/registrar_salida/{nino_id}", response_model=PagoResponse)
+def registrar_salida(nino_id: int, paquete: int, db: Session = Depends(get_db)):
+
+    ahora = datetime.now()
+    mes_actual = ahora.month
+    anio_actual = ahora.year
+
+    pago_existente = db.query(Pago).filter(
+        Pago.nino_id == nino_id,
+        Pago.mes == mes_actual,
+        Pago.anio == anio_actual
+    ).first()
+
+    valor_paquete = VALORES_PAQUETE.get(paquete)
+    if not valor_paquete:
+        raise HTTPException(status_code=400, detail="Paquete inválido")
+
+    if not pago_existente:
+        nuevo_pago = Pago(
+            nino_id=nino_id,
+            mes=mes_actual,
+            anio=anio_actual,
+            deuda=valor_paquete,
+            pago=0.0,
+            estado=0
+        )
+        db.add(nuevo_pago)
+        db.commit()
+        db.refresh(nuevo_pago)
+        return nuevo_pago
+    else:
+        if pago_existente.deuda < valor_paquete:
+            pago_existente.deuda = valor_paquete
+        else:
+            pago_existente.deuda += 80
+
+        db.commit()
+        db.refresh(pago_existente)
+        return pago_existente
