@@ -9,6 +9,8 @@ class Nino(Base):
     nombre = Column(String, nullable=False)
     sucursal = Column(Integer, nullable=False)
 
+    paquete = Column(Integer, nullable=False)  
+
     padre_id = Column(Integer, ForeignKey("padres.id"), nullable=False)
 
     padre = relationship("Padre")
