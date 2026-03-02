@@ -41,11 +41,9 @@ def crear_pago(pago: PagoCreate, db: Session = Depends(get_db)):
         )
 
     nuevo = Pago(**pago.model_dump())
-
     db.add(nuevo)
     db.commit()
     db.refresh(nuevo)
-
     return nuevo
 
 
@@ -71,24 +69,32 @@ def actualizar_pago(pago_id: int, pago: PagoUpdate, db: Session = Depends(get_db
         setattr(registro, k, v)
 
     if registro.pago >= registro.deuda:
-        registro.estado = 1 
+        registro.estado = 1
     elif registro.pago > 0:
         registro.estado = 2
     else:
-        registro.estado = 0  
+        registro.estado = 0
 
     db.commit()
     db.refresh(registro)
-
     return registro
 
 
 @router.post("/registrar_salida/{nino_id}", response_model=PagoResponse)
-def registrar_salida(nino_id: int, paquete: int, db: Session = Depends(get_db)):
+def registrar_salida(nino_id: int, paquete: int, horas_totales: int, db: Session = Depends(get_db)):
 
     ahora = datetime.now()
     mes_actual = ahora.month
     anio_actual = ahora.year
+
+    valor_paquete = VALORES_PAQUETE.get(paquete)
+    if not valor_paquete:
+        raise HTTPException(status_code=400, detail="Paquete inválido")
+
+    horas_incluidas = paquete + 3
+
+    horas_extra = max(0, horas_totales - horas_incluidas)
+    costo_extra = horas_extra * 80
 
     pago_existente = db.query(Pago).filter(
         Pago.nino_id == nino_id,
@@ -96,16 +102,12 @@ def registrar_salida(nino_id: int, paquete: int, db: Session = Depends(get_db)):
         Pago.anio == anio_actual
     ).first()
 
-    valor_paquete = VALORES_PAQUETE.get(paquete)
-    if not valor_paquete:
-        raise HTTPException(status_code=400, detail="Paquete inválido")
-
     if not pago_existente:
         nuevo_pago = Pago(
             nino_id=nino_id,
             mes=mes_actual,
             anio=anio_actual,
-            deuda=valor_paquete,
+            deuda=valor_paquete + costo_extra,
             pago=0.0,
             estado=0
         )
@@ -116,19 +118,10 @@ def registrar_salida(nino_id: int, paquete: int, db: Session = Depends(get_db)):
     else:
         if pago_existente.deuda < valor_paquete:
             pago_existente.deuda = valor_paquete
-        else:
-            pago_existente.deuda += 80
+
+        if costo_extra > 0:
+            pago_existente.deuda += costo_extra
 
         db.commit()
         db.refresh(pago_existente)
         return pago_existente
-    
-    # En tu router de fechas
-@router.get("/nino/{nino_id}/mes/{mes}/anio/{anio}")
-def obtener_fechas_por_nino_mes(nino_id: int, mes: int, anio: int, db: Session = Depends(get_db)):
-    return db.query(Fecha).filter(
-        Fecha.nino_id == nino_id,
-        extract('month', Fecha.fecha) == mes,
-        extract('year', Fecha.fecha) == anio,
-        Fecha.tiempo_estancia != None
-    ).all()
