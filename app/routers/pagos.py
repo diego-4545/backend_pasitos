@@ -122,3 +122,13 @@ def registrar_salida(nino_id: int, paquete: int, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(pago_existente)
         return pago_existente
+    
+    # En tu router de fechas
+@router.get("/nino/{nino_id}/mes/{mes}/anio/{anio}")
+def obtener_fechas_por_nino_mes(nino_id: int, mes: int, anio: int, db: Session = Depends(get_db)):
+    return db.query(Fecha).filter(
+        Fecha.nino_id == nino_id,
+        extract('month', Fecha.fecha) == mes,
+        extract('year', Fecha.fecha) == anio,
+        Fecha.tiempo_estancia != None
+    ).all()
