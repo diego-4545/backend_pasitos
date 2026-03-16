@@ -5,4 +5,4 @@ class AgendaCreate(BaseModel):
     padre_id: int
     fecha: date
     hora: time
-    motivo: str
+    descripcion: str

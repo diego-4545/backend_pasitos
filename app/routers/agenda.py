@@ -33,3 +33,18 @@ def eliminar_cita(cita_id: int, db: Session = Depends(get_db)):
     db.delete(registro)
     db.commit()
     return {"mensaje": "Cita eliminada"}
+
+
+@router.put("/{cita_id}")
+def editar_cita(cita_id: int, cita: AgendaCreate, db: Session = Depends(get_db)):
+    registro = db.query(Agenda).filter(Agenda.id == cita_id).first()
+    if not registro:
+        raise HTTPException(404, "Cita no encontrada")
+    
+    registro.padre_id = cita.padre_id
+    registro.fecha = cita.fecha
+    registro.hora = cita.hora
+    registro.descripcion = cita.descripcion
+    db.commit()
+    db.refresh(registro)
+    return registro
