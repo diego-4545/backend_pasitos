@@ -77,3 +77,13 @@ def eliminar_maestro(maestro_id: int, db: Session = Depends(get_db)):
     db.delete(registro)
     db.commit()
     return {"mensaje": "Maestro eliminado"}
+
+@router.get("/login")
+def login_maestro(username: str, password: str, db: Session = Depends(get_db)):
+    maestro = db.query(Maestro).filter(
+        Maestro.username == username,
+        Maestro.password == password
+    ).first()
+    if not maestro:
+        raise HTTPException(status_code=404, detail="Credenciales incorrectas")
+    return maestro
