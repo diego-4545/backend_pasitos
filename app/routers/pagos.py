@@ -92,7 +92,6 @@ def registrar_salida(nino_id: int, paquete: int, horas_totales: int, db: Session
         raise HTTPException(status_code=400, detail="Paquete inválido")
 
     horas_incluidas = paquete + 3
-
     horas_extra = max(0, horas_totales - horas_incluidas)
     costo_extra = horas_extra * 80
 
@@ -121,6 +120,13 @@ def registrar_salida(nino_id: int, paquete: int, horas_totales: int, db: Session
 
         if costo_extra > 0:
             pago_existente.deuda += costo_extra
+
+        if pago_existente.pago >= pago_existente.deuda:
+            pago_existente.estado = 1
+        elif pago_existente.pago > 0:
+            pago_existente.estado = 2
+        else:
+            pago_existente.estado = 0
 
         db.commit()
         db.refresh(pago_existente)
